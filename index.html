@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberSentinel | CyberNova Web & AI Solutions</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <header class="navbar">
+        <div class="brand-container">
+            <div class="logo-wrapper">
+                <img src="qfSIr.png" alt="CyberNova Logo" class="brand-logo-img">
+            </div>
+            <div class="brand-title-group">
+                <span class="company-name">Cyber<span class="highlight-nova">Nova</span></span>
+                <span class="product-name">CyberSentinel Suite</span>
+            </div>
+        </div>
+        <div class="nav-status">
+            <span class="status-dot"></span> SECURE-NODE 1.0
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="container">
+        
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="badge-tag">AI SECURITY & SOC ARCHITECTURE</div>
+            <h1>Autonomous Web Vulnerability & AI Security Engine</h1>
+            <p>Deploy advanced deep-packet heuristics and neural threat modeling backed by CyberNova architecture.</p>
+            
+            <div class="scanner-box">
+                <div class="input-wrapper">
+                    <span class="protocol">https://</span>
+                    <input type="text" id="targetUrl" placeholder="target-domain.com" autocomplete="off">
+                </div>
+                <button id="scanBtn" onclick="startAdvancedScan()">Initialize Deep Scan</button>
+            </div>
+        </section>
+
+        <!-- Live Terminal Scanner Output (Hidden initially) -->
+        <section id="terminalSection" class="card terminal-card hidden">
+            <div class="terminal-header">
+                <div class="terminal-dots">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <span class="terminal-title">cybersentinel@cybernova-engine:~#</span>
+            </div>
+            <div id="terminalLogs" class="terminal-body">
+                <!-- Live logs will inject here -->
+            </div>
+        </section>
+
+        <!-- Dashboard Results Grid (Hidden initially) -->
+        <section id="resultsSection" class="results-grid hidden">
+            
+            <!-- Security Score Card -->
+            <div class="card score-card">
+                <h3>Threat Index Rating</h3>
+                <div class="score-circle">
+                    <span id="scoreVal">--</span>
+                    <sub id="scoreStatus">Analyzing</sub>
+                </div>
+            </div>
+
+            <!-- Vulnerabilities Breakdown -->
+            <div class="card vuln-card">
+                <h3>Heuristic Security Matrix</h3>
+                <ul id="vulnList">
+                    <!-- Dynamic Rows -->
+                </ul>
+            </div>
+
+            <!-- AI Security Summary -->
+            <div class="card ai-card full-width">
+                <h3>🤖 CyberNova Neural AI Threat Intelligence & Remediation</h3>
+                <div id="aiSummaryBox">
+                    <p class="placeholder-text">Awaiting heuristic vector extraction...</p>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

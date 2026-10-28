@@ -57,9 +57,18 @@ function showResults(domain, originalInput) {
     const cleanDomain = domain.toLowerCase();
     const cleanInput = originalInput.toLowerCase();
 
-    // Strict array of threat keywords that must ALWAYS trigger High Risk
-    const threatKeywords = ['vuln', 'test', 'evil', 'hack', 'bad', 'admin', 'malware', 'danger', 'attack', 'phish', 'scam'];
+    // 1. Safe Whitelist (Yeh websites hamesha SECURE / GREEN rahengi)
+    const safeWhitelist = ['google.com', 'github.com', 'microsoft.com', 'apple.com', 'amazon.com', 'cloudflare.com', 'facebook.com', 'netflix.com', 'linkedin.com'];
+    let isWhitelisted = false;
+    for (let i = 0; i < safeWhitelist.length; i++) {
+        if (cleanDomain === safeWhitelist[i] || cleanDomain.endsWith('.' + safeWhitelist[i])) {
+            isWhitelisted = true;
+            break;
+        }
+    }
 
+    // 2. Strict Threat Keywords (Yeh hamesha HIGH RISK / RED rahenge)
+    const threatKeywords = ['vuln', 'test', 'evil', 'hack', 'bad', 'admin', 'malware', 'danger', 'attack', 'phish', 'scam'];
     let forceVulnerable = false;
     for (let i = 0; i < threatKeywords.length; i++) {
         if (cleanDomain.includes(threatKeywords[i]) || cleanInput.includes(threatKeywords[i])) {
@@ -72,14 +81,19 @@ function showResults(domain, originalInput) {
         forceVulnerable = true;
     }
 
-    // Mathematical hash for standard random domains
-    let charHash = 0;
-    for (let i = 0; i < cleanDomain.length; i++) {
-        charHash += cleanDomain.charCodeAt(i);
+    // 3. Final Decision Logic
+    let isVulnerable = false;
+    if (isWhitelisted) {
+        isVulnerable = false;
+    } else if (forceVulnerable) {
+        isVulnerable = true;
+    } else {
+        let charHash = 0;
+        for (let i = 0; i < cleanDomain.length; i++) {
+            charHash += cleanDomain.charCodeAt(i);
+        }
+        isVulnerable = (charHash % 10 < 3);
     }
-
-    // Final Decision: Force vulnerable if keyword matches, otherwise use hash logic
-    const isVulnerable = forceVulnerable || (charHash % 10 < 3);
 
     if (isVulnerable) {
         scoreVal.textContent = "35";
@@ -102,7 +116,12 @@ function showResults(domain, originalInput) {
             <p>• <strong>Actionable Mitigation:</strong> Enforce TLS 1.3, implement strict Content Security Policy (CSP), and sanitize all incoming parameters.</p>
         `;
     } else {
-        const calculatedScore = 85 + (charHash % 14); 
+        let charHash = 0;
+        for (let i = 0; i < cleanDomain.length; i++) {
+            charHash += cleanDomain.charCodeAt(i);
+        }
+        const calculatedScore = isWhitelisted ? (95 + (charHash % 5)) : (85 + (charHash % 14)); 
+        
         scoreVal.textContent = calculatedScore.toString();
         scoreVal.style.color = "#34d399";
         scoreStatus.textContent = "SECURE (A+)";

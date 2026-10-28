@@ -57,8 +57,9 @@ function showResults(domain, originalInput) {
     const cleanDomain = domain.toLowerCase();
     const cleanInput = originalInput.toLowerCase();
 
-    // 1. Safe Whitelist (Yeh websites hamesha SECURE / GREEN rahengi)
-    const safeWhitelist = ['google.com', 'github.com', 'microsoft.com', 'apple.com', 'amazon.com', 'cloudflare.com', 'facebook.com', 'netflix.com', 'linkedin.com'];
+    // 1. Strict Safe Whitelist (In par HAMESHA Green / Secure aayega, koi exception nahi)
+    const safeWhitelist = ['google.com', 'github.com', 'microsoft.com', 'apple.com', 'amazon.com', 'cloudflare.com', 'facebook.com', 'netflix.com', 'linkedin.com', 'youtube.com'];
+    
     let isWhitelisted = false;
     for (let i = 0; i < safeWhitelist.length; i++) {
         if (cleanDomain === safeWhitelist[i] || cleanDomain.endsWith('.' + safeWhitelist[i])) {
@@ -67,7 +68,7 @@ function showResults(domain, originalInput) {
         }
     }
 
-    // 2. Strict Threat Keywords (Yeh hamesha HIGH RISK / RED rahenge)
+    // 2. Strict Threat Keywords (In par HAMESHA Red / High Risk aayega)
     const threatKeywords = ['vuln', 'test', 'evil', 'hack', 'bad', 'admin', 'malware', 'danger', 'attack', 'phish', 'scam'];
     let forceVulnerable = false;
     for (let i = 0; i < threatKeywords.length; i++) {
@@ -81,13 +82,14 @@ function showResults(domain, originalInput) {
         forceVulnerable = true;
     }
 
-    // 3. Final Decision Logic
+    // 3. BULLETPROOF LOGIC: Whitelist has absolute highest priority!
     let isVulnerable = false;
     if (isWhitelisted) {
-        isVulnerable = false;
+        isVulnerable = false; // 100% Safe (Green)
     } else if (forceVulnerable) {
-        isVulnerable = true;
+        isVulnerable = true;  // 100% Risk (Red)
     } else {
+        // Random other links
         let charHash = 0;
         for (let i = 0; i < cleanDomain.length; i++) {
             charHash += cleanDomain.charCodeAt(i);

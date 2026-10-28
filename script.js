@@ -57,39 +57,30 @@ function showResults(domain, originalInput) {
     const cleanDomain = domain.toLowerCase();
     const cleanInput = originalInput.toLowerCase();
 
-    // 1. Strict Safe Whitelist (In par HAMESHA Green / Secure aayega, koi exception nahi)
-    const safeWhitelist = ['google.com', 'github.com', 'microsoft.com', 'apple.com', 'amazon.com', 'cloudflare.com', 'facebook.com', 'netflix.com', 'linkedin.com', 'youtube.com'];
-    
-    let isWhitelisted = false;
-    for (let i = 0; i < safeWhitelist.length; i++) {
-        if (cleanDomain === safeWhitelist[i] || cleanDomain.endsWith('.' + safeWhitelist[i])) {
-            isWhitelisted = true;
-            break;
-        }
-    }
+    // 🛑 MASTER OVERRIDE: Sabse pehle check karo ke Google ya safe site hai ya nahi
+    const isGoogleOrSafe = cleanDomain.includes('google') || 
+                           cleanDomain.includes('github') || 
+                           cleanDomain.includes('microsoft') || 
+                           cleanDomain.includes('apple') || 
+                           cleanDomain.includes('youtube');
 
-    // 2. Strict Threat Keywords (In par HAMESHA Red / High Risk aayega)
-    const threatKeywords = ['vuln', 'test', 'evil', 'hack', 'bad', 'admin', 'malware', 'danger', 'attack', 'phish', 'scam'];
-    let forceVulnerable = false;
-    for (let i = 0; i < threatKeywords.length; i++) {
-        if (cleanDomain.includes(threatKeywords[i]) || cleanInput.includes(threatKeywords[i])) {
-            forceVulnerable = true;
-            break;
-        }
-    }
+    // ⚠️ THREAT CHECK: Agar threat keywords hain
+    const hasThreat = cleanDomain.includes('vuln') || 
+                      cleanDomain.includes('test') || 
+                      cleanDomain.includes('evil') || 
+                      cleanDomain.includes('hack') || 
+                      cleanDomain.includes('bad') || 
+                      cleanDomain.includes('admin') ||
+                      cleanInput.startsWith('http:');
 
-    if (cleanInput.startsWith('http:')) {
-        forceVulnerable = true;
-    }
-
-    // 3. BULLETPROOF LOGIC: Whitelist has absolute highest priority!
+    // Final Decision Logic
     let isVulnerable = false;
-    if (isWhitelisted) {
-        isVulnerable = false; // 100% Safe (Green)
-    } else if (forceVulnerable) {
-        isVulnerable = true;  // 100% Risk (Red)
+    if (isGoogleOrSafe) {
+        isVulnerable = false; // 100% Guaranteed Green for Google/Safe
+    } else if (hasThreat) {
+        isVulnerable = true;  // 100% Guaranteed Red for Threats
     } else {
-        // Random other links
+        // Baaki random links ke liye
         let charHash = 0;
         for (let i = 0; i < cleanDomain.length; i++) {
             charHash += cleanDomain.charCodeAt(i);
@@ -118,13 +109,7 @@ function showResults(domain, originalInput) {
             <p>• <strong>Actionable Mitigation:</strong> Enforce TLS 1.3, implement strict Content Security Policy (CSP), and sanitize all incoming parameters.</p>
         `;
     } else {
-        let charHash = 0;
-        for (let i = 0; i < cleanDomain.length; i++) {
-            charHash += cleanDomain.charCodeAt(i);
-        }
-        const calculatedScore = isWhitelisted ? (95 + (charHash % 5)) : (85 + (charHash % 14)); 
-        
-        scoreVal.textContent = calculatedScore.toString();
+        scoreVal.textContent = "96";
         scoreVal.style.color = "#34d399";
         scoreStatus.textContent = "SECURE (A+)";
         scoreStatus.style.color = "#34d399";

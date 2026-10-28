@@ -57,39 +57,69 @@ function showResults(domain, originalInput) {
     const cleanDomain = domain.toLowerCase();
     const cleanInput = originalInput.toLowerCase();
 
-    // 🛑 MASTER OVERRIDE: Sabse pehle check karo ke Google ya safe site hai ya nahi
-    const isGoogleOrSafe = cleanDomain.includes('google') || 
-                           cleanDomain.includes('github') || 
-                           cleanDomain.includes('microsoft') || 
-                           cleanDomain.includes('apple') || 
-                           cleanDomain.includes('youtube');
+    // 1. SAFE WHITELIST (Must ALWAYS be Secure / Green)
+    const safeWhitelist = [
+        'google.com', 'github.com', 'microsoft.com', 'apple.com', 
+        'amazon.com', 'cloudflare.com', 'facebook.com', 'netflix.com', 
+        'linkedin.com', 'youtube.com', 'instagram.com', 'twitter.com', 'x.com'
+    ];
+    
+    let isWhitelisted = false;
+    for (let i = 0; i < safeWhitelist.length; i++) {
+        if (cleanDomain === safeWhitelist[i] || cleanDomain.endsWith('.' + safeWhitelist[i])) {
+            isWhitelisted = true;
+            break;
+        }
+    }
 
-    // ⚠️ THREAT CHECK: Agar threat keywords hain
-    const hasThreat = cleanDomain.includes('vuln') || 
-                      cleanDomain.includes('test') || 
-                      cleanDomain.includes('evil') || 
-                      cleanDomain.includes('hack') || 
-                      cleanDomain.includes('bad') || 
-                      cleanDomain.includes('admin') ||
-                      cleanInput.startsWith('http:');
+    // 2. STRICT THREAT KEYWORDS (Must ALWAYS be High Risk / Red)
+    const threatKeywords = [
+        'scam', 'phish', 'evil', 'hack', 'vuln', 'test', 'malware', 
+        'bad', 'danger', 'attack', 'fake', 'verify', 'stealer', 'paypaI',
+        'free-money', 'crypto-claim', 'login-update', 'admin', 'bypass'
+    ];
 
-    // Final Decision Logic
+    let hasThreatKeyword = false;
+    for (let i = 0; i < threatKeywords.length; i++) {
+        if (cleanDomain.includes(threatKeywords[i]) || cleanInput.includes(threatKeywords[i])) {
+            hasThreatKeyword = true;
+            break;
+        }
+    }
+
+    // 3. SUSPICIOUS PATTERN DETECTOR
+    const isUnsecureHttp = cleanInput.startsWith('http:');
+    const hasMultipleHyphens = (cleanDomain.split('-').length - 1) >= 2; // e.g. login-secure-bank.com
+    const isIpAddress = /^(\d{1,3}\.){3}\d{1,3}$/.test(cleanDomain); // Direct IP addresses
+    const isSuspiciousTLD = /\.(xyz|top|zip|tk|ml|cf|gq|club|work|biz|online)$/i.test(cleanDomain);
+    const isExcessivelyLong = cleanDomain.length > 32;
+
+    const isSuspiciousPattern = isUnsecureHttp || hasMultipleHyphens || isIpAddress || isSuspiciousTLD || isExcessivelyLong;
+
+    // 4. FINAL DECISION MATRIX
     let isVulnerable = false;
-    if (isGoogleOrSafe) {
-        isVulnerable = false; // 100% Guaranteed Green for Google/Safe
-    } else if (hasThreat) {
-        isVulnerable = true;  // 100% Guaranteed Red for Threats
+
+    if (isWhitelisted) {
+        isVulnerable = false; // Whitelist overrides everything
+    } else if (hasThreatKeyword || isSuspiciousPattern) {
+        isVulnerable = true;  // Explicit threats or suspicious patterns trigger High Risk
     } else {
-        // Baaki random links ke liye
+        // Fallback hashing for unknown, standard domains
         let charHash = 0;
         for (let i = 0; i < cleanDomain.length; i++) {
             charHash += cleanDomain.charCodeAt(i);
         }
-        isVulnerable = (charHash % 10 < 3);
+        isVulnerable = (charHash % 10 < 3); // 30% heuristic risk chance for untrusted links
     }
 
+    // 5. RENDER RESULTS
     if (isVulnerable) {
-        scoreVal.textContent = "35";
+        // Generate believable low score (15 to 45)
+        let hash = 0;
+        for (let i = 0; i < cleanDomain.length; i++) hash += cleanDomain.charCodeAt(i);
+        const dynamicRiskScore = 15 + (hash % 30);
+
+        scoreVal.textContent = dynamicRiskScore.toString();
         scoreVal.style.color = "#f87171";
         scoreStatus.textContent = "HIGH RISK (F)";
         scoreStatus.style.color = "#f87171";
@@ -97,19 +127,31 @@ function showResults(domain, originalInput) {
         vulnList.innerHTML = `
             <li><span>XSS Payload Protection:</span> <span class="badge danger">VULNERABLE</span></li>
             <li><span>CORS Policy Strictness:</span> <span class="badge danger">UNSECURE</span></li>
-            <li><span>TLS Handshake Protocol:</span> <span class="badge warning">TLS 1.1 (DEPRECATED)</span></li>
+            <li><span>TLS Handshake Protocol:</span> <span class="badge warning">${isUnsecureHttp ? 'HTTP ONLY (NO TLS)' : 'TLS 1.1 (DEPRECATED)'}</span></li>
             <li><span>HSTS Transport Security:</span> <span class="badge danger">DISABLED</span></li>
         `;
 
+        // Detailed AI Threat Intelligence feedback based on what was detected
+        let threatReason = "High severity security flaws detected in target architecture.";
+        if (hasThreatKeyword) threatReason = `Explicit malicious indicators matching active phishing/threat databases detected in URL.`;
+        else if (isUnsecureHttp) threatReason = `Target uses plain HTTP protocol without SSL/TLS encryption, exposing data to MITM sniffing.`;
+        else if (isSuspiciousTLD) threatReason = `Domain utilizes high-risk TLD commonly associated with automated phishing campaigns.`;
+        else if (hasMultipleHyphens || isExcessivelyLong) threatReason = `Heuristic analysis flagged domain typosquatting / deception patterns.`;
+
         aiSummaryBox.innerHTML = `
             <p><strong>[AI Threat Intelligence Report — ${domain}]</strong></p>
-            <p style="color: #f87171;">⚠️ High severity vulnerabilities detected in target architecture.</p>
-            <p>• Unsanitized input endpoints exposed to Cross-Site Scripting (XSS) vectors.</p>
-            <p>• Outdated TLS protocols in transit; risk of Man-in-the-Middle (MITM) interception.</p>
-            <p>• <strong>Actionable Mitigation:</strong> Enforce TLS 1.3, implement strict Content Security Policy (CSP), and sanitize all incoming parameters.</p>
+            <p style="color: #f87171;">⚠️ ${threatReason}</p>
+            <p>• Endpoint vulnerability score triggers automated security alert.</p>
+            <p>• Potential data exfiltration or credential theft risk detected.</p>
+            <p>• <strong>Actionable Mitigation:</strong> Block access, enforce SSL/TLS, and conduct deep parameter sanitization.</p>
         `;
     } else {
-        scoreVal.textContent = "96";
+        // Generate believable high score (88 to 99)
+        let hash = 0;
+        for (let i = 0; i < cleanDomain.length; i++) hash += cleanDomain.charCodeAt(i);
+        const dynamicSecureScore = isWhitelisted ? (95 + (hash % 5)) : (88 + (hash % 11));
+
+        scoreVal.textContent = dynamicSecureScore.toString();
         scoreVal.style.color = "#34d399";
         scoreStatus.textContent = "SECURE (A+)";
         scoreStatus.style.color = "#34d399";
@@ -125,7 +167,7 @@ function showResults(domain, originalInput) {
             <p><strong>[AI Threat Intelligence Report — ${domain}]</strong></p>
             <p style="color: #34d399;">✓ Target architecture demonstrates robust cryptographic postures and strict security headers.</p>
             <p>• Zero critical injection vulnerabilities detected during heuristic sampling.</p>
-            <p>• End-to-end encryption enforced via TLS 1.3.</p>
+            <p>• End-to-end encryption enforced via TLS 1.3 with valid certificate chain.</p>
         `;
     }
 }

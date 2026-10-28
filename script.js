@@ -14,7 +14,7 @@ function startAdvancedScan() {
     resultsSection.classList.add('hidden');
     terminalLogs.innerHTML = '';
 
-    const domain = inputVal.replace(/^https?:\/\//, '');
+    const domain = inputVal.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
 
     const logs = [
         `[+] Initializing socket handshake with target: https://${domain}`,
@@ -39,13 +39,13 @@ function startAdvancedScan() {
         } else {
             clearInterval(interval);
             setTimeout(() => {
-                showResults(domain);
+                showResults(domain, inputVal);
             }, 600);
         }
     }, 500);
 }
 
-function showResults(domain) {
+function showResults(domain, originalInput) {
     const resultsSection = document.getElementById('resultsSection');
     const scoreVal = document.getElementById('scoreVal');
     const scoreStatus = document.getElementById('scoreStatus');
@@ -54,11 +54,35 @@ function showResults(domain) {
 
     resultsSection.classList.remove('hidden');
 
-    // Dynamic Condition: Vulnerable/Scam links testing logic
-    const isVulnerable = domain.includes('vuln') || domain.includes('test') || domain.includes('http:');
+    const cleanDomain = domain.toLowerCase();
+    const cleanInput = originalInput.toLowerCase();
+
+    // Strict array of threat keywords that must ALWAYS trigger High Risk
+    const threatKeywords = ['vuln', 'test', 'evil', 'hack', 'bad', 'admin', 'malware', 'danger', 'attack', 'phish', 'scam'];
+
+    let forceVulnerable = false;
+    for (let i = 0; i < threatKeywords.length; i++) {
+        if (cleanDomain.includes(threatKeywords[i]) || cleanInput.includes(threatKeywords[i])) {
+            forceVulnerable = true;
+            break;
+        }
+    }
+
+    if (cleanInput.startsWith('http:')) {
+        forceVulnerable = true;
+    }
+
+    // Mathematical hash for standard random domains
+    let charHash = 0;
+    for (let i = 0; i < cleanDomain.length; i++) {
+        charHash += cleanDomain.charCodeAt(i);
+    }
+
+    // Final Decision: Force vulnerable if keyword matches, otherwise use hash logic
+    const isVulnerable = forceVulnerable || (charHash % 10 < 3);
 
     if (isVulnerable) {
-        scoreVal.textContent = "38";
+        scoreVal.textContent = "35";
         scoreVal.style.color = "#f87171";
         scoreStatus.textContent = "HIGH RISK (F)";
         scoreStatus.style.color = "#f87171";
@@ -78,7 +102,8 @@ function showResults(domain) {
             <p>• <strong>Actionable Mitigation:</strong> Enforce TLS 1.3, implement strict Content Security Policy (CSP), and sanitize all incoming parameters.</p>
         `;
     } else {
-        scoreVal.textContent = "92";
+        const calculatedScore = 85 + (charHash % 14); 
+        scoreVal.textContent = calculatedScore.toString();
         scoreVal.style.color = "#34d399";
         scoreStatus.textContent = "SECURE (A+)";
         scoreStatus.style.color = "#34d399";
